@@ -22,11 +22,11 @@ It is also possible to transform data with the operations "find", "where", "sele
 Example usage:
 
 ```
-echo '[{"name": "John", "age": 30}, {"name": "Jane", "age": 25}]' | jtt find name
+echo '[{"name": "John", "age": 30}, {"name": "Jane", "age": 25}]' | jtt find john
 echo '[{"name": "John", "age": 30}, {"name": "Jane", "age": 25}]' | jtt where age gt 25
 echo '[{"name": "John", "age": 30}, {"name": "Jane", "age": 25}]' | jtt select name
 echo '[{"name": "John", "age": 30}, {"name": "Jane", "age": 25}]' | jtt order by age
-echo '[{"name": "John", "age": 30}, {"name": "Jane", "age": 25}]' | jtt find name, order by age desc
+echo '[{"name": "John", "age": 30}, {"name": "Jane", "age": 25}]' | jtt find jane, order by age desc
 ```
 
 You can also utilize CURL to fetch JSON data from an API and pipe it to the program.

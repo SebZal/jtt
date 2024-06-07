@@ -53,6 +53,21 @@ internal static class DataTransformer
         string operatorName = parts[1].ToLower(CultureInfo.InvariantCulture);
         string value = parts[2];
 
+        if (DateTime.TryParse(value, out DateTime dateValue))
+        {
+            return operatorName switch
+            {
+                "lt" => data.Where(d => DateTime.Parse(d[columnName]?.ToString() ?? DateTime.MinValue.ToString()) < dateValue).ToArray(),
+                "gt" => data.Where(d => DateTime.Parse(d[columnName]?.ToString() ?? DateTime.MinValue.ToString()) > dateValue).ToArray(),
+                "eq" => data.Where(d => DateTime.Parse(d[columnName]?.ToString() ?? DateTime.MinValue.ToString()) == dateValue).ToArray(),
+                "ne" => data.Where(d => DateTime.Parse(d[columnName]?.ToString() ?? DateTime.MinValue.ToString()) != dateValue).ToArray(),
+                "le" => data.Where(d => DateTime.Parse(d[columnName]?.ToString() ?? DateTime.MinValue.ToString()) <= dateValue).ToArray(),
+                "ge" => data.Where(d => DateTime.Parse(d[columnName]?.ToString() ?? DateTime.MinValue.ToString()) >= dateValue).ToArray(),
+                _ => throw new InvalidOperationException(
+                    "Invalid operator, supported operators for dates are: lt, gt, eq, ne, le, ge")
+            };
+        }
+
         if (!double.TryParse(value, out double number))
         {
             return operatorName switch
@@ -87,15 +102,26 @@ internal static class DataTransformer
 
         string columnName = parts[0];
         bool isDescending = parts.Length > 1 && parts[1].Equals("desc", StringComparison.OrdinalIgnoreCase);
-        bool isNumber = data.Any(d => double.TryParse(d[columnName]?.ToString(), out _));
 
-        return isNumber
-            ? isDescending
+        bool isDate = data.Any(d => DateTime.TryParse(d[columnName]?.ToString(), out _));
+        if (isDate)
+        {
+            return isDescending
+                ? [.. data.OrderByDescending(d => DateTime.Parse(d[columnName]?.ToString() ?? DateTime.MinValue.ToString()))]
+                : [.. data.OrderBy(d => DateTime.Parse(d[columnName]?.ToString() ?? DateTime.MinValue.ToString()))];
+        }
+
+        bool isNumber = data.Any(d => double.TryParse(d[columnName]?.ToString(), out _));
+        if (isNumber)
+        {
+            return isDescending
                 ? [.. data.OrderByDescending(d => double.Parse(d[columnName]?.ToString() ?? "0"))]
-                : [.. data.OrderBy(d => double.Parse(d[columnName]?.ToString() ?? "0"))]
-            : isDescending
-                ? [.. data.OrderByDescending(d => d[columnName]?.ToString())]
-                : [.. data.OrderBy(d => d[columnName]?.ToString())];
+                : [.. data.OrderBy(d => double.Parse(d[columnName]?.ToString() ?? "0"))];
+        }
+
+        return isDescending
+            ? [.. data.OrderByDescending(d => d[columnName]?.ToString())]
+            : [.. data.OrderBy(d => d[columnName]?.ToString())];
     }
 
     public static Dictionary<string, object>[] Select(Dictionary<string, object>[] data, string command)

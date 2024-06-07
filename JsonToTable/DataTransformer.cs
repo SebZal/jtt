@@ -103,7 +103,7 @@ internal static class DataTransformer
         string columnName = parts[0];
         bool isDescending = parts.Length > 1 && parts[1].Equals("desc", StringComparison.OrdinalIgnoreCase);
 
-        bool isDate = data.Any(d => DateTime.TryParse(d[columnName]?.ToString(), out _));
+        bool isDate = data.All(d => DateTime.TryParse(d[columnName]?.ToString(), out _));
         if (isDate)
         {
             return isDescending
@@ -111,7 +111,7 @@ internal static class DataTransformer
                 : [.. data.OrderBy(d => DateTime.Parse(d[columnName]?.ToString() ?? DateTime.MinValue.ToString()))];
         }
 
-        bool isNumber = data.Any(d => double.TryParse(d[columnName]?.ToString(), out _));
+        bool isNumber = data.All(d => double.TryParse(d[columnName]?.ToString(), out _));
         if (isNumber)
         {
             return isDescending

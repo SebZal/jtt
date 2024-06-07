@@ -90,12 +90,26 @@ static void PrintTable(Dictionary<string, object>[] data)
         Console.WriteLine(VerticalLine);
     }
 
-    PrintBottomLine(headerLength);
+    if (data.Length > 30)
+    {
+        PrintHeader(headerLength, columnLengths, [.. columnNames], isBottom: true);
+    }
+    else
+    {
+        PrintBottomLine(headerLength);
+    }
 }
 
-static void PrintHeader(int headerLength, Dictionary<string, int> columnLengths, string[] headers)
+static void PrintHeader(int headerLength, Dictionary<string, int> columnLengths, string[] headers, bool isBottom = false)
 {
-    PrintTopLine(headerLength);
+    if (!isBottom)
+    {
+        PrintTopLine(headerLength);
+    }
+    else
+    {
+        PrintMiddleLine(headerLength);
+    }
 
     foreach (string header in headers)
     {
@@ -103,7 +117,14 @@ static void PrintHeader(int headerLength, Dictionary<string, int> columnLengths,
     }
     Console.WriteLine(VerticalLine);
 
-    PrintMiddleLine(headerLength);
+    if (!isBottom)
+    {
+        PrintMiddleLine(headerLength);
+    }
+    else
+    {
+        PrintBottomLine(headerLength);
+    }
 }
 
 static Dictionary<string, int> GetColumnLengths(Dictionary<string, object>[] data, string[] columnNames)

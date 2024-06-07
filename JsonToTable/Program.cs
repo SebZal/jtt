@@ -26,7 +26,7 @@ if (string.IsNullOrWhiteSpace(json))
 bool isArray = json.Trim().StartsWith('[');
 if (isArray)
 {
-    json = JsonSerializer.Serialize(JsonSerializer.Deserialize<Dictionary<string, object>[]>(json));
+    json = JsonSerializer.Serialize(JsonSerializer.Deserialize<Dictionary<string, object>[]>(json)); // minify JSON
     Dictionary<string, object>[]? data = JsonSerializer.Deserialize<Dictionary<string, object>[]>(json);
     if (data is null || data.Length == 0)
     {
@@ -44,7 +44,7 @@ if (isArray)
 }
 else
 {
-    json = JsonSerializer.Serialize(JsonSerializer.Deserialize<Dictionary<string, object>>(json));
+    json = JsonSerializer.Serialize(JsonSerializer.Deserialize<Dictionary<string, object>>(json)); // minify JSON
     Dictionary<string, object>? data = JsonSerializer.Deserialize<Dictionary<string, object>>(json);
     if (data is null)
     {
@@ -71,19 +71,21 @@ static void PrintTransposedTable(Dictionary<string, object> data)
     PrintBottomLine(headerLength);
 }
 
-static void PrintTable(params Dictionary<string, object>[] data)
+static void PrintTable(Dictionary<string, object>[] data)
 {
-    int[] columnLengths = GetColumnLengths(data);
-    int headerLength = GetHeaderLength(data, columnLengths);
+    string[] columnNames = GetColumnNames(data);
+    AddMissingKeys(data, columnNames);
 
-    PrintHeader(headerLength, columnLengths, [.. data.First().Keys]);
+    Dictionary<string, int> columnLengths = GetColumnLengths(data, columnNames);
+    int headerLength = GetHeaderLength(columnLengths);
+
+    PrintHeader(headerLength, columnLengths, [.. columnNames]);
 
     foreach (Dictionary<string, object> item in data)
     {
-        for (int i = 0; i < columnLengths.Length; i++)
+        foreach (KeyValuePair<string, int> columnLength in columnLengths)
         {
-            KeyValuePair<string, object> kvp = item.ElementAt(i);
-            Console.Write($"{VerticalLine} {(kvp.Value ?? "").ToString()!.PadRight(columnLengths[i])} ");
+            Console.Write($"{VerticalLine} {(item[columnLength.Key] ?? "").ToString()!.PadRight(columnLength.Value)} ");
         }
         Console.WriteLine(VerticalLine);
     }
@@ -91,22 +93,22 @@ static void PrintTable(params Dictionary<string, object>[] data)
     PrintBottomLine(headerLength);
 }
 
-static void PrintHeader(int headerLength, int[] columnLengths, string[] headers)
+static void PrintHeader(int headerLength, Dictionary<string, int> columnLengths, string[] headers)
 {
     PrintTopLine(headerLength);
 
-    for (int i = 0; i < headers.Length; i++)
+    foreach (string header in headers)
     {
-        Console.Write($"{VerticalLine} {headers[i].PadRight(columnLengths[i])} ");
+        Console.Write($"{VerticalLine} {header.PadRight(columnLengths[header])} ");
     }
     Console.WriteLine(VerticalLine);
 
     PrintMiddleLine(headerLength);
 }
 
-static int[] GetColumnLengths(Dictionary<string, object>[] data)
+static Dictionary<string, int> GetColumnLengths(Dictionary<string, object>[] data, string[] columnNames)
 {
-    var columnLengths = data.First().ToDictionary(x => x.Key, x => x.Key.ToString().Length);
+    var columnLengths = columnNames.ToDictionary(x => x, x => x.Length);
     foreach (Dictionary<string, object> item in data)
     {
         foreach (KeyValuePair<string, object> kvp in item)
@@ -115,11 +117,37 @@ static int[] GetColumnLengths(Dictionary<string, object>[] data)
         }
     }
 
-    return [.. columnLengths.Values];
+    return columnLengths;
 }
 
-static int GetHeaderLength(Dictionary<string, object>[] data, int[] columnLengths) =>
-    columnLengths.Sum(x => x) + (columnLengths.Length * 3) + 1;
+static string[] GetColumnNames(Dictionary<string, object>[] data) // TODO verify order
+{
+    // Some elements may not have all the keys, to be safe, we get all the keys from all the elements
+    HashSet<string> columnNames = [];
+    foreach (Dictionary<string, object> item in data)
+    {
+        columnNames.UnionWith(item.Keys);
+    }
+
+    return [.. columnNames];
+}
+
+static void AddMissingKeys(Dictionary<string, object>[] data, string[] columnNames)
+{
+    foreach (Dictionary<string, object> item in data)
+    {
+        foreach (string columnName in columnNames)
+        {
+            if (!item.ContainsKey(columnName))
+            {
+                item[columnName] = "";
+            }
+        }
+    }
+}
+
+static int GetHeaderLength(Dictionary<string, int> columnLengths) =>
+    columnLengths.Sum(x => x.Value) + (columnLengths.Select(x => x.Value).Count() * 3) + 1;
 
 static void PrintTopLine(int length) =>
     Console.WriteLine($"{LeftUpperCorner}{new string(HorizontalLine, length - 2)}{RightUpperCorner}");

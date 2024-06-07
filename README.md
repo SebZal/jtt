@@ -17,7 +17,7 @@ echo '[{"name": "John", "age": 30}, {"name": "Jane", "age": 25}]' | jtt
 └───────┴─────┘
 ```
 
-It is also possible to transform data with the operations "find", "where", "select" and "order by".
+It is also possible to transform data with the operations "find", "where", "select", "order by", "skip", and "take".
 
 Example usage:
 
@@ -26,6 +26,8 @@ echo '[{"name": "John", "age": 30}, {"name": "Jane", "age": 25}]' | jtt find joh
 echo '[{"name": "John", "age": 30}, {"name": "Jane", "age": 25}]' | jtt where age gt 25
 echo '[{"name": "John", "age": 30}, {"name": "Jane", "age": 25}]' | jtt select name
 echo '[{"name": "John", "age": 30}, {"name": "Jane", "age": 25}]' | jtt order by age
+echo '[{"name": "John", "age": 30}, {"name": "Jane", "age": 25}]' | jtt skip 1
+echo '[{"name": "John", "age": 30}, {"name": "Jane", "age": 25}]' | jtt take 1
 echo '[{"name": "John", "age": 30}, {"name": "Jane", "age": 25}]' | jtt find jane, order by age desc
 ```
 

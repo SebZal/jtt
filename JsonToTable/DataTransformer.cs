@@ -24,6 +24,8 @@ internal static class DataTransformer
                 var c when c.StartsWith("where", StringComparison.OrdinalIgnoreCase) => Where(data, c),
                 var c when c.StartsWith("order by", StringComparison.OrdinalIgnoreCase) => OrderBy(data, c),
                 var c when c.StartsWith("select", StringComparison.OrdinalIgnoreCase) => Select(data, c),
+                var c when c.StartsWith("skip", StringComparison.OrdinalIgnoreCase) => Skip(data, c),
+                var c when c.StartsWith("take", StringComparison.OrdinalIgnoreCase) => Take(data, c),
                 _ => throw new InvalidOperationException("Invalid command")
             };
         }
@@ -100,5 +102,25 @@ internal static class DataTransformer
     {
         string[] columns = command[6..].Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(c => c.Trim()).ToArray();
         return data.Select(d => columns.ToDictionary(c => c, c => d[c])).ToArray();
+    }
+
+    public static Dictionary<string, object>[] Skip(Dictionary<string, object>[] data, string command)
+    {
+        if (!int.TryParse(command[4..], out int count))
+        {
+            throw new InvalidOperationException("Invalid skip command");
+        }
+
+        return [.. data.Skip(count)];
+    }
+
+    public static Dictionary<string, object>[] Take(Dictionary<string, object>[] data, string command)
+    {
+        if (!int.TryParse(command[4..], out int count))
+        {
+            throw new InvalidOperationException("Invalid take command");
+        }
+
+        return [.. data.Take(count)];
     }
 }

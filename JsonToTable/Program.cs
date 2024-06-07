@@ -141,7 +141,7 @@ static Dictionary<string, int> GetColumnLengths(Dictionary<string, object>[] dat
     return columnLengths;
 }
 
-static string[] GetColumnNames(Dictionary<string, object>[] data) // TODO verify order
+static string[] GetColumnNames(Dictionary<string, object>[] data)
 {
     // Some elements may not have all the keys, to be safe, we get all the keys from all the elements
     HashSet<string> columnNames = [];
